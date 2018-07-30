@@ -2,32 +2,27 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const bcrypt = require('bcrypt-nodejs');
 const cors = require('cors');
+const knex = require('knex');
+
+const db = knex({
+  client: 'pg',
+  connection: {
+    host : '127.0.0.1',
+    user : 'postgres',
+    password : 'sabu',
+    database : 'smart-brain'
+  }
+});
+
+db.select('*').from('users').then(data => {
+	console.log(data);
+})
 
 const app = express();
 
 app.use(cors())
 app.use(bodyParser.json());
 
-const database = {
-	users: [
-		{
-			id: '123',
-			name: 'John',
-			email: 'john@gmail.com',
-			password: 'cookies',
-			entries: 0,
-			joined: new Date()
-		},
-		{
-			id: '124',
-			name: 'Sally',
-			email: 'sally@gmail.com',
-			password: 'bananas',
-			entries: 0,
-			joined: new Date()
-		}
-	]
-}
 
 app.get('/', (req, res) =>{
 	res.send(database.users);
@@ -53,16 +48,17 @@ app.post('/register', (req, res) => {
  //    // Store hash in your password DB.
 	// });
 
-	database.users.push({
-		id: '125',
-		name: name,
-		email: email,
-		password: password,
-		entries: 0,
-		joined: new Date()
-	});
-
-	res.json(database.users[database.users.length-1]);
+	db('users')
+		.returning('*')
+		.insert({
+			email: email,
+			name: name,
+			joined: new Date()
+		})
+		.then(user => {
+			res.json(user);
+		})
+		.catch(err => res.status(400).json("unable to register"))
 });
 
 app.get('/profile/:id', (req, res) => {
