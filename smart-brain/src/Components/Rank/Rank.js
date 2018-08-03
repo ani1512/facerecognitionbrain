@@ -1,8 +1,6 @@
 import React from 'react';
 
 const Rank = ({ name, entries }) => {
-	console.log(name)
-	console.log(entries)
   return (
     <div>
       <div className='white f3'>
